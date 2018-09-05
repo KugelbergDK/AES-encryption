@@ -60,6 +60,6 @@ print(aes.decrypt(input("Your encrypted data: ")).decode("utf-8"))
 To decrypt file, use - THIS DOES NOT WORK YET
 
 ```python
-print(aes.decryptFile("plaintext.txt", "encrypted.txt", 64 * 1024)
+print(aes.decryptFile("encrypted.txt", "decrypted.txt", 64 * 1024)
 
 ```
