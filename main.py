@@ -43,9 +43,7 @@ class AESCipher:
                     outFile.write(base64.b64encode(cipher.encrypt(chunk)))
 
     def decrypt(self, enc):
-        print(type(enc))
         enc = base64.b64decode(enc)
-        print(type(enc))
         hashed = enc[:32]
         if self.key == hashed:
             print("Password correct... Continue")
@@ -80,4 +78,18 @@ class AESCipher:
         return s[:-ord(s[len(s) - 1:])]
 
 
-print("[+] DONE!")
+
+''' EXAMPLES
+
+aes = AESCipher(input("[+] Password: "))
+
+print("\n\n" + aes.encrypt(input("[+] Your message to encrypt: ")).decode("utf-8"))
+
+print(bcolors.OKGREEN + "\n\n[+] DONE!" + bcolors.ENDC)
+
+aes = AESCipher(input("[+] Password for decryption: "))
+print ("\n\n")
+print(aes.decrypt("pmWkWSBCL51Bfkhn79xPuKBKHz//H6B+mY6G9/eieuONIPFiKUB/vWlImZ/Vz6eduKroJu5QCVxMo3mU7oxocJ6VUsFryE8Z46wV3ZwSdYWGKPoGk7qGZM9LAl40QGxf3QWuQC/k3f9/I6Oia+4eqg==").decode("utf-8"))
+
+
+'''
