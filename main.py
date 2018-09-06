@@ -31,7 +31,7 @@ class AESCipher:
 
     def encryptFile(self, fileIn, fileOut, chunksize):
         cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
-        with open(fileIn, "r") as plain:
+        with open(fileIn, "rb") as plain:
             with open(fileOut, "wb") as outFile:
                 outFile.write(base64.b64encode(self.key + self.iv))
 
@@ -39,7 +39,7 @@ class AESCipher:
                     chunk = plain.read(chunksize)
                     if len(chunk) == 0:
                         break
-                    chunk = self._pad(chunk.encode("utf-8"))
+                    chunk = self._pad(chunk)
                     outFile.write(base64.b64encode(cipher.encrypt(chunk)))
 
     def decrypt(self, enc):
@@ -78,7 +78,10 @@ class AESCipher:
         return s[:-ord(s[len(s) - 1:])]
 
 
-
+aes = AESCipher(input("[+] Password: "))
+#aes.encryptFile("secret.txt", "encrypted.txt", 64 * 1024)
+print(aes.decrypt("pmWkWSBCL51Bfkhn79xPuKBKHz//H6B+mY6G9/eieuMCd1Fvc9HOaiHvKI1LQsu3F/RA9AzzdFKv3/XaTChp5BXeSSFU/KoFLiAx+k1jIk1CpB4CLFPHFRifEPUqJ5NSLQGoxJg8hU0TbmaEmDAXFA==").decode("utf-8"))
+print(bcolors.OKGREEN + "[+] DONE!" + bcolors.ENDC)
 ''' EXAMPLES
 
 aes = AESCipher(input("[+] Password: "))
