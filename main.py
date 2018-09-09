@@ -55,8 +55,8 @@ class AESCipher:
         return self._unpad(cipher.decrypt(enc[48:]))
 
     def decryptFile(self, fileIn, fileOut, chunksize):
-        with open(fileIn, "rb") as encrypted:
-            encrypted = base64.b64decode(encrypted.read())
+        with open(fileIn, "rb") as encryptedFile:
+            encrypted = base64.b64decode(encryptedFile.read())
             setup = encrypted[:48]         # READ KEY[32] and IV[16] = 32 + 16 = 48 | Hent key og IV
             if self.key == setup[:32]:
                 print("Password correct!")
@@ -67,9 +67,6 @@ class AESCipher:
             iv = setup[32:]
             cipher = AES.new(self.key, AES.MODE_CBC, iv)
 
-            # Virker ikke
-            # TODO: Indsæt while løkke og decrypter chunk.
-
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs).encode('utf-8')
 
@@ -78,10 +75,6 @@ class AESCipher:
         return s[:-ord(s[len(s) - 1:])]
 
 
-aes = AESCipher(input("[+] Password: "))
-#aes.encryptFile("secret.txt", "encrypted.txt", 64 * 1024)
-print(aes.decrypt("pmWkWSBCL51Bfkhn79xPuKBKHz//H6B+mY6G9/eieuMCd1Fvc9HOaiHvKI1LQsu3F/RA9AzzdFKv3/XaTChp5BXeSSFU/KoFLiAx+k1jIk1CpB4CLFPHFRifEPUqJ5NSLQGoxJg8hU0TbmaEmDAXFA==").decode("utf-8"))
-print(bcolors.OKGREEN + "[+] DONE!" + bcolors.ENDC)
 ''' EXAMPLES
 
 aes = AESCipher(input("[+] Password: "))
