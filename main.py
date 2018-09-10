@@ -41,6 +41,8 @@ class AESCipher:
                         break
                     chunk = self._pad(chunk)
                     outFile.write(base64.b64encode(cipher.encrypt(chunk)))
+                    print("Chunk Written...")
+                    print(chunk)
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
@@ -75,6 +77,8 @@ class AESCipher:
         return s[:-ord(s[len(s) - 1:])]
 
 
+aes = AESCipher(input("[+] Password: "))
+aes.encryptFile("secret.txt", "secret_out.txt", 64 * 1024)
 ''' EXAMPLES
 
 aes = AESCipher(input("[+] Password: "))
