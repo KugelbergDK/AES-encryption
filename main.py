@@ -2,9 +2,22 @@
 
 import base64
 import sys
+import os
 import hashlib
+import funcy
 from Crypto import Random
 from Crypto.Cipher import AES
+
+
+'''
+Chunks der virker
+enc:    32
+dec:    48
+
+enc:    128
+dec:    144
+
+'''
 
 
 class bcolors:
@@ -20,7 +33,7 @@ class bcolors:
 
 class AESCipher:
     def __init__(self, key):
-        self.bs = 64
+        self.bs = AES.block_size
         self.iv = Random.new().read(AES.block_size)                 # 16 bytes
         self.key = hashlib.sha256(key.encode('utf-8')).digest()     # 32 bytes
 
@@ -30,6 +43,7 @@ class AESCipher:
         return base64.b64encode(self.key + self.iv + cipher.encrypt(raw))  # Første 32 bytes er hash, næste er 16 bytes IV, næste er encrypted cipher
 
     def encryptFile(self, fileIn, fileOut, chunksize):
+        print("Encrypting file: " + fileIn)
         cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
         with open(fileIn, "rb") as plain:
             with open(fileOut, "wb") as outFile:
@@ -40,9 +54,9 @@ class AESCipher:
                     if len(chunk) == 0:
                         break
                     chunk = self._pad(chunk)
+                    print("BYTE SIZE:\t " + str(len(chunk)))
+                    #print("Chunk written")
                     outFile.write(base64.b64encode(cipher.encrypt(chunk)))
-                    print("Chunk Written...")
-                    print(chunk)
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
@@ -57,17 +71,26 @@ class AESCipher:
         return self._unpad(cipher.decrypt(enc[48:]))
 
     def decryptFile(self, fileIn, fileOut, chunksize):
+        print("Decrypting file: " + fileIn)
         with open(fileIn, "rb") as encryptedFile:
-            encrypted = base64.b64decode(encryptedFile.read())
-            setup = encrypted[:48]         # READ KEY[32] and IV[16] = 32 + 16 = 48 | Hent key og IV
-            if self.key == setup[:32]:
-                print("Password correct!")
-            else:
-                print("WRONG PASSWORD")
-                sys.exit(0)
+            with open(fileOut, "wb") as decryptedFile:
+                encrypted = base64.b64decode(encryptedFile.read(64))
+                setup = encrypted[:48]         # READ KEY[32] and IV[16] = 32 + 16 = 48 | Hent key og IV
+                if self.key == setup[:32]:
+                    print("Password correct!")
+                else:
+                    print("WRONG PASSWORD")
+                    sys.exit(0)
 
-            iv = setup[32:]
-            cipher = AES.new(self.key, AES.MODE_CBC, iv)
+                iv = setup[32:]
+                cipher = AES.new(self.key, AES.MODE_CBC, iv)
+                encrypted = base64.b64decode(encryptedFile.read())
+                chunks = list(funcy.chunks(chunksize, encrypted))
+                for chunk in chunks:
+                    print("BYTE SIZE:\t " + str(len(chunk)))
+                    decrypted_chunk = self._unpad(cipher.decrypt(chunk))
+                    decryptedFile.write(decrypted_chunk)
+                # print(self._unpad(cipher.decrypt(base64.b64decode(encryptedFile.read()))))
 
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs).encode('utf-8')
@@ -77,8 +100,14 @@ class AESCipher:
         return s[:-ord(s[len(s) - 1:])]
 
 
+os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-aes.encryptFile("secret.txt", "secret_out.txt", 64 * 1024)
+encrypted = aes.encryptFile("secret.txt", "secret-out.txt", 256)
+# Give me some space
+print("\n")
+
+decrypted = aes.decryptFile("secret-out.txt", "dekrypteret.txt", 272)
+# print(decrypted)
 ''' EXAMPLES
 
 aes = AESCipher(input("[+] Password: "))
