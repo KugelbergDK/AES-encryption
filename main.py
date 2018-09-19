@@ -102,11 +102,11 @@ class AESCipher:
 
 os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-encrypted = aes.encryptFile("secret.txt", "secret-out.txt", 256)
+encrypted = aes.encryptFile("secret.txt", "secret-out.txt", 128)
 # Give me some space
 print("\n")
 
-decrypted = aes.decryptFile("secret-out.txt", "dekrypteret.txt", 272)
+decrypted = aes.decryptFile("secret-out.txt", "dekrypteret.txt", 144)
 # print(decrypted)
 ''' EXAMPLES
 
