@@ -5,7 +5,7 @@ This is a python CLI tool to encrypt and decrypt data using AES-256. This works 
 ## Installation
 You need to install PyCrypto in order to make this work.
 
-	$ pip install pycrypto hashlib base64
+	$ pip install pycrypto hashlib base64 funcy
 
 
 ## How to
@@ -27,9 +27,7 @@ aes = AESCipher(password)
 
 ```
 
-### Just tell me how to use this thing
-
-#### Encryption
+### Encryption
 To encrypt string, use
 
 ```python
@@ -41,13 +39,14 @@ To encrypt file
 
 
 ```python
-aes.encryptFile("plaintext.txt", "encrypted.txt", 64 * 1024)
+aes.encryptFile("plaintext.txt", "encrypted.txt", 131072)
 
 ```
 
 The 3rd parameter is the chunk size. How much data you want to encrypt each time, this may be different from computer to computer
 
-#### Decryption
+
+### Decryption
 
 To decrypt string, use
 
@@ -57,9 +56,27 @@ print(aes.decrypt(input("Your encrypted data: ")).decode("utf-8"))
 ```
 
 
-To decrypt file, use - THIS DOES NOT WORK YET
+To decrypt file, use
+
 
 ```python
-print(aes.decryptFile("encrypted.txt", "decrypted.txt", 64 * 1024)
+print(aes.decryptFile("encrypted.txt", "decrypted.txt", 131088)
 
 ```
+This works only with certain chunksizes
+
+### Chunksizes
+
+Chunksizes in this script is quite unique. 
+Make sure when encrypting to use a chunksize there is divisible with 16. 
+
+When working with files, the setup is like this:
+
+```
+{key[32 bytes]}{IV[16 bytes]}{chunk[chunksize]}{chunk[chunksize]}...
+
+```
+
+It is important to use the chunksizes written down in the code (out-commented in the first section of the code)
+
+You ccan try to test it by yourself, but I can't promise that it will work.
