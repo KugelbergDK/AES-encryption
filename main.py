@@ -39,6 +39,11 @@ dec:=[48,144,288,816,2064]
 LinReg(enc,dec)
 f(x):=1.0000x+16.0000
 Forklaringsgrad er 1.0
+
+
+speed testing
+took 0.234 seconds to encrypt 102MB
+took 0.531 seconds to decrypt 102MB
 '''
 
 
@@ -73,16 +78,10 @@ class AESCipher:
 
                 while True:
                     chunk = plain.read(chunksize)
-                    # print(chunk)
-                    # print(len(chunk))
                     if len(chunk) == 0:
                         break
                     chunk = self._pad(chunk)
-                    print("\n")
-                    print("BYTE SIZE:\t " + str(len(chunk)))
-                    print(chunk)
-                    #print("Chunk written")
-                    outFile.write(base64.b64encode(cipher.encrypt(chunk)) + bytes(",,".encode("utf-8")))
+                    outFile.write(base64.b64encode(cipher.encrypt(chunk)))
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
@@ -97,7 +96,6 @@ class AESCipher:
         return self._unpad(cipher.decrypt(enc[48:]))
 
     def decryptFile(self, fileIn, fileOut, chunksize):
-        print("Decrypting file: " + fileIn)
         with open(fileIn, "rb") as encryptedFile:
             with open(fileOut, "wb") as decryptedFile:
                 encrypted = base64.b64decode(encryptedFile.read(64))
@@ -108,19 +106,15 @@ class AESCipher:
                     print("WRONG PASSWORD")
                     sys.exit(0)
 
+                print("Decrypting file: " + fileIn)
+
                 iv = setup[32:]
                 cipher = AES.new(self.key, AES.MODE_CBC, iv)
                 encrypted = base64.b64decode(encryptedFile.read())
                 chunks = list(funcy.chunks(chunksize, encrypted))
-                print("\n\n\n CHUNKS!")
-                print(len(chunks))
                 for chunk in chunks:
-                    print("\n")
-                    print("BYTE SIZE:\t " + str(len(chunk)))
                     decrypted_chunk = self._unpad(cipher.decrypt(chunk))
-                    print(decrypted_chunk)
                     decryptedFile.write(decrypted_chunk)
-                # print(self._unpad(cipher.decrypt(base64.b64decode(encryptedFile.read()))))
 
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs).encode('utf-8')
@@ -131,11 +125,10 @@ class AESCipher:
 
 
 
-
 # EXAMPLES AND TESTING BELOW
 os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-encrypted = aes.encryptFile("docs/secret.txt", "docs/secret-out.txt", 131072)
-decrypted = aes.decryptFile("docs/secret-out.txt", "docs/secret-dekrypteret.txt", 131088)
+encrypted = aes.encryptFile("docs/secret.txt", "docs/secret-enc.txt", 131072)
+decrypted = aes.decryptFile("docs/secret-enc.txt", "docs/secret.txt", 131088)
 # Give me some space
 print("\n")
