@@ -79,4 +79,4 @@ When working with files, the setup is like this:
 
 It is important to use the chunksizes written down in the code (out-commented in the first section of the code)
 
-You ccan try to test it by yourself, but I can't promise that it will work.
+You can try to test it by yourself, but I can't promise that it will work.
