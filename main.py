@@ -10,13 +10,35 @@ from Crypto.Cipher import AES
 
 
 '''
-Chunks der virker
+Chunks available
 enc:    32
 dec:    48
 
 enc:    128
 dec:    144
 
+enc:    272
+dec:    288
+
+enc:    800
+dec:    816
+
+enc:    2048
+dec:    2064
+
+enc:    32768
+dec:    32784
+
+enc:    131072
+dec:    131088
+
+
+MAPLE LIGNING TIL CHUNKS
+enc:=[32,128,272,800,2048]
+dec:=[48,144,288,816,2064]
+LinReg(enc,dec)
+f(x):=1.0000x+16.0000
+Forklaringsgrad er 1.0
 '''
 
 
@@ -51,12 +73,16 @@ class AESCipher:
 
                 while True:
                     chunk = plain.read(chunksize)
+                    # print(chunk)
+                    # print(len(chunk))
                     if len(chunk) == 0:
                         break
                     chunk = self._pad(chunk)
+                    print("\n")
                     print("BYTE SIZE:\t " + str(len(chunk)))
+                    print(chunk)
                     #print("Chunk written")
-                    outFile.write(base64.b64encode(cipher.encrypt(chunk)))
+                    outFile.write(base64.b64encode(cipher.encrypt(chunk)) + bytes(",,".encode("utf-8")))
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
@@ -86,9 +112,13 @@ class AESCipher:
                 cipher = AES.new(self.key, AES.MODE_CBC, iv)
                 encrypted = base64.b64decode(encryptedFile.read())
                 chunks = list(funcy.chunks(chunksize, encrypted))
+                print("\n\n\n CHUNKS!")
+                print(len(chunks))
                 for chunk in chunks:
+                    print("\n")
                     print("BYTE SIZE:\t " + str(len(chunk)))
                     decrypted_chunk = self._unpad(cipher.decrypt(chunk))
+                    print(decrypted_chunk)
                     decryptedFile.write(decrypted_chunk)
                 # print(self._unpad(cipher.decrypt(base64.b64decode(encryptedFile.read()))))
 
@@ -100,25 +130,12 @@ class AESCipher:
         return s[:-ord(s[len(s) - 1:])]
 
 
+
+
+# EXAMPLES AND TESTING BELOW
 os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-encrypted = aes.encryptFile("secret.txt", "secret-out.txt", 128)
+encrypted = aes.encryptFile("docs/secret.txt", "docs/secret-out.txt", 131072)
+decrypted = aes.decryptFile("docs/secret-out.txt", "docs/secret-dekrypteret.txt", 131088)
 # Give me some space
 print("\n")
-
-decrypted = aes.decryptFile("secret-out.txt", "dekrypteret.txt", 144)
-# print(decrypted)
-''' EXAMPLES
-
-aes = AESCipher(input("[+] Password: "))
-
-print("\n\n" + aes.encrypt(input("[+] Your message to encrypt: ")).decode("utf-8"))
-
-print(bcolors.OKGREEN + "\n\n[+] DONE!" + bcolors.ENDC)
-
-aes = AESCipher(input("[+] Password for decryption: "))
-print ("\n\n")
-print(aes.decrypt("pmWkWSBCL51Bfkhn79xPuKBKHz//H6B+mY6G9/eieuONIPFiKUB/vWlImZ/Vz6eduKroJu5QCVxMo3mU7oxocJ6VUsFryE8Z46wV3ZwSdYWGKPoGk7qGZM9LAl40QGxf3QWuQC/k3f9/I6Oia+4eqg==").decode("utf-8"))
-
-
-'''
