@@ -128,7 +128,49 @@ class AESCipher:
 # EXAMPLES AND TESTING BELOW
 os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-encrypted = aes.encryptFile("docs/secret.txt", "docs/secret-enc.txt", 131072)
-decrypted = aes.decryptFile("docs/secret-enc.txt", "docs/secret.txt", 131088)
+#encrypted = aes.encryptFile("docs/1gb.txt", "docs/1gb-enc.txt", 131072)
+decrypted = aes.decryptFile("docs/1gb-enc.txt", "docs/1gb.txt", 131088)
 # Give me some space
 print("\n")
+'''
+50mb
+    enc: 
+        real    0m3.701s
+        user    0m0.344s
+        sys     0m0.281s
+    dec:
+        real    0m2.129s
+        user    0m0.375s
+        sys     0m0.281s
+
+148mb
+    enc:
+        real    0m2.522s
+        user    0m0.891s
+        sys     0m0.359s
+    dec:
+        real    0m3.077s
+        user    0m1.219s
+        sys     0m0.594s
+
+478mb
+    enc:
+        real    0m5.281s
+        user    0m2.906s
+        sys     0m1.000s
+    dec:
+        real    0m6.738s
+        user    0m3.453s
+        sys     0m2.156s
+
+1gb
+    enc:
+        real    0m11.788s
+        user    0m8.047s
+        sys     0m2.500s
+    dec:
+        real    0m16.306s
+        user    0m9.641s
+        sys     0m5.484s
+
+'''
