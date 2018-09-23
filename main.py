@@ -69,8 +69,9 @@ class AESCipher:
         cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
         return base64.b64encode(self.key + self.iv + cipher.encrypt(raw))  # Første 32 bytes er hash, næste er 16 bytes IV, næste er encrypted cipher
 
-    def encryptFile(self, fileIn, fileOut, chunksize):
-        print("Encrypting file: " + fileIn)
+    def encryptFile(self, fileIn, chunksize):
+        fileOut = fileIn + ".tmp"
+        print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Encrypting file: " + fileIn)
         cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
         with open(fileIn, "rb") as plain:
             with open(fileOut, "wb") as outFile:
@@ -82,6 +83,8 @@ class AESCipher:
                         break
                     chunk = self._pad(chunk)
                     outFile.write(base64.b64encode(cipher.encrypt(chunk)))
+        os.rename(fileOut, fileIn)
+        print(bcolors.OKGREEN + "[+] " + bcolors.ENDC + "Encrypting done!")
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
@@ -95,18 +98,18 @@ class AESCipher:
         cipher = AES.new(self.key, AES.MODE_CBC, iv)
         return self._unpad(cipher.decrypt(enc[48:]))
 
-    def decryptFile(self, fileIn, fileOut, chunksize):
+    def decryptFile(self, fileIn, chunksize):
+        fileOut = fileIn + ".tmp"
+        print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Decrypting file: " + fileIn)
         with open(fileIn, "rb") as encryptedFile:
             with open(fileOut, "wb") as decryptedFile:
                 encrypted = base64.b64decode(encryptedFile.read(64))
                 setup = encrypted[:48]         # READ KEY[32] and IV[16] = 32 + 16 = 48 | Hent key og IV
                 if self.key == setup[:32]:
-                    print("Password correct!")
+                    print(bcolors.OKGREEN + "[+] Password correct!" + bcolors.ENDC)
                 else:
-                    print("WRONG PASSWORD")
+                    print(bcolors.FAIL + "WRONG PASSWORD" + bcolors.ENDC)
                     sys.exit(0)
-
-                print("Decrypting file: " + fileIn)
 
                 iv = setup[32:]
                 cipher = AES.new(self.key, AES.MODE_CBC, iv)
@@ -115,6 +118,8 @@ class AESCipher:
                 for chunk in chunks:
                     decrypted_chunk = self._unpad(cipher.decrypt(chunk))
                     decryptedFile.write(decrypted_chunk)
+        os.rename(fileOut, fileIn)
+        print(bcolors.OKGREEN + "[+] " + bcolors.ENDC + "Decrypting done!")
 
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs).encode('utf-8')
@@ -128,8 +133,8 @@ class AESCipher:
 # EXAMPLES AND TESTING BELOW
 os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-#encrypted = aes.encryptFile("docs/1gb.txt", "docs/1gb-enc.txt", 131072)
-decrypted = aes.decryptFile("docs/1gb-enc.txt", "docs/1gb.txt", 131088)
+encrypted = aes.encryptFile("docs/50mb.txt", 131072)
+decrypted = aes.decryptFile("docs/50mb.txt", 131088)
 # Give me some space
 print("\n")
 '''
