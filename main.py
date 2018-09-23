@@ -70,21 +70,24 @@ class AESCipher:
         return base64.b64encode(self.key + self.iv + cipher.encrypt(raw))  # Første 32 bytes er hash, næste er 16 bytes IV, næste er encrypted cipher
 
     def encryptFile(self, fileIn, chunksize):
-        fileOut = fileIn + ".tmp"
-        print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Encrypting file: " + fileIn)
-        cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
-        with open(fileIn, "rb") as plain:
-            with open(fileOut, "wb") as outFile:
-                outFile.write(base64.b64encode(self.key + self.iv))
+        try:
+            fileOut = fileIn + ".tmp"
+            print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Encrypting file: " + fileIn)
+            cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
+            with open(fileIn, "rb") as plain:
+                with open(fileOut, "wb") as outFile:
+                    outFile.write(base64.b64encode(self.key + self.iv))
 
-                while True:
-                    chunk = plain.read(chunksize)
-                    if len(chunk) == 0:
-                        break
-                    chunk = self._pad(chunk)
-                    outFile.write(base64.b64encode(cipher.encrypt(chunk)))
-        os.rename(fileOut, fileIn)
-        print(bcolors.OKGREEN + "[+] " + bcolors.ENDC + "Encrypting done!")
+                    while True:
+                        chunk = plain.read(chunksize)
+                        if len(chunk) == 0:
+                            break
+                        chunk = self._pad(chunk)
+                        outFile.write(base64.b64encode(cipher.encrypt(chunk)))
+            os.rename(fileOut, fileIn)
+            print(bcolors.OKGREEN + "[+] " + bcolors.ENDC + "Encrypting done!")
+        except Exception as e:
+            raise e
 
     def decrypt(self, enc):
         enc = base64.b64decode(enc)
@@ -99,27 +102,30 @@ class AESCipher:
         return self._unpad(cipher.decrypt(enc[48:]))
 
     def decryptFile(self, fileIn, chunksize):
-        fileOut = fileIn + ".tmp"
-        print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Decrypting file: " + fileIn)
-        with open(fileIn, "rb") as encryptedFile:
-            with open(fileOut, "wb") as decryptedFile:
+        try:
+            fileOut = fileIn + ".tmp"
+            print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Decrypting file: " + fileIn)
+            with open(fileIn, "rb") as encryptedFile:
                 encrypted = base64.b64decode(encryptedFile.read(64))
                 setup = encrypted[:48]         # READ KEY[32] and IV[16] = 32 + 16 = 48 | Hent key og IV
                 if self.key == setup[:32]:
                     print(bcolors.OKGREEN + "[+] Password correct!" + bcolors.ENDC)
                 else:
-                    print(bcolors.FAIL + "WRONG PASSWORD" + bcolors.ENDC)
+                    print(bcolors.FAIL + "[!] WRONG PASSWORD" + bcolors.ENDC)
                     sys.exit(0)
 
                 iv = setup[32:]
                 cipher = AES.new(self.key, AES.MODE_CBC, iv)
-                encrypted = base64.b64decode(encryptedFile.read())
-                chunks = list(funcy.chunks(chunksize, encrypted))
-                for chunk in chunks:
-                    decrypted_chunk = self._unpad(cipher.decrypt(chunk))
-                    decryptedFile.write(decrypted_chunk)
-        os.rename(fileOut, fileIn)
-        print(bcolors.OKGREEN + "[+] " + bcolors.ENDC + "Decrypting done!")
+                with open(fileOut, "wb") as decryptedFile:
+                    encrypted = base64.b64decode(encryptedFile.read())
+                    chunks = list(funcy.chunks(chunksize, encrypted))
+                    for chunk in chunks:
+                        decrypted_chunk = self._unpad(cipher.decrypt(chunk))
+                        decryptedFile.write(decrypted_chunk)
+            os.rename(fileOut, fileIn)
+            print(bcolors.OKGREEN + "[+] " + bcolors.ENDC + "Decrypting done!")
+        except Exception as e:
+            raise e
 
     def _pad(self, s):
         return s + (self.bs - len(s) % self.bs) * chr(self.bs - len(s) % self.bs).encode('utf-8')
@@ -128,18 +134,48 @@ class AESCipher:
     def _unpad(s):
         return s[:-ord(s[len(s) - 1:])]
 
+    def recursive(self, path, mode, chunksize):
+        counter = 0
+        if path == "":
+            path = "."
+            print(bcolors.WARNING + "[!] " + bcolors.ENDC + "Path was not entered, path will be on the root location. (The folder where this script is in) \nCurrently using this path: " + os.getcwd())
+            acceptPath = input(bcolors.WARNING + "\n[-] " + bcolors.ENDC + "Do you accept using this path? Y/n: ")
+            if acceptPath.lower() == "n":
+                sys.exit(bcolors.FAIL + "[!] " + bcolors.ENDC + "Exitting...")
+            elif acceptPath.lower() != "n" or acceptPath.lower() != "y":
+                sys.exit("")
+        elif len(path) > 1:
+            path = "./" + path
+        else:
+            sys.exit(bcolors.FAIL + "[!] SOMETHING WENT WRONG" + bcolors.ENDC)
+        # Set the directory you want to start from
+        for root, dirs, files in os.walk(path, topdown=True):
+            for file_ in files:
+                if __file__[2:] in file_:
+                    continue
+                filePath = os.path.join(root, file_)
+
+                if mode.lower() == "encrypt":
+                    aes.encryptFile(filePath, chunksize)
+                elif mode.lower() == "decrypt":
+                    aes.decryptFile(filePath, chunksize)
+                else:
+                    sys.exit(bcolors.FAIL + "[!] PLEASE SELECT A MODE" + bcolors.ENDC)
+                # aes.encryptFile(filePath, 131072)
+                # aes.decryptFile(filePath, 131088)
+                counter += 1
+
+        print("Total files:\t" + str(counter))
 
 
-# EXAMPLES AND TESTING BELOW
-os.system("clear")
 aes = AESCipher(input("[+] Password: "))
-encrypted = aes.encryptFile("docs/50mb.txt", 131072)
-decrypted = aes.decryptFile("docs/50mb.txt", 131088)
-# Give me some space
-print("\n")
+
+aes.recursive("docs", "encrypt", 131072)
+
 '''
+
 50mb
-    enc: 
+    enc:
         real    0m3.701s
         user    0m0.344s
         sys     0m0.281s
