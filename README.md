@@ -63,7 +63,7 @@ To decrypt file, use
 print(aes.decryptFile("encrypted.txt", "decrypted.txt", 131088)
 
 ```
-This works only with certain chunksizes
+This works only with certain chunksizes.
 
 ### Chunksizes
 
@@ -77,6 +77,6 @@ When working with files, the setup is like this:
 
 ```
 
-It is important to use the chunksizes written down in the code (out-commented in the first section of the code)
+It is important to use the chunksizes written down in the code (out-commented in the first section of the code.)
 
 You can try to test it by yourself, but I can't promise that it will work.
